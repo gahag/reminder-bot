@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# PROVIDE: reminder-bot
+# REQUIRE: NETWORKING FILESYSTEMS SERVERS DAEMON resolv syslogd
+# KEYWORD:
+
+. /etc/rc.subr
+
+name='reminder-bot'
+start_cmd='cd /root/reminder-bot && daemon -o  reminder-bot.log ./reminder-bot'
+stop_cmd='pkill -SIGTERM reminder-bot'
+
+load_rc_config $name
+run_rc_command "$1"

@@ -1,0 +1,66 @@
+[bot]
+db = ''
+key = ''
+username = ''
+
+[bot.authentication]
+prompt = 'Tem uber nesse grupo?'
+password = 'se tiver eu vou passar a faca'
+authorized = 'Boa noite amantes da sétima arte!'
+
+[commands]
+remove_command = 'cancela'
+list_command = 'chora'
+
+[messages]
+added_messages = [
+	'Tá anotado bb'
+]
+
+removed_messages = [
+	'Se vc quer que eu esqueça eu vou esquecer!'
+]
+
+not_found_messages = [
+	'Tem isso aqui não meu fi!'
+]
+
+empty_messages = [
+	'Ce não me pediu pra te lembrar de nada não zé'
+]
+
+list_header_messages = [
+	'Tá aqui seus problema:'
+]
+
+misunderstanding_messages = [
+	'🖕',
+	'Vc é uber né? Sempre soube.',
+	'A função da televisão é fazer todo mundo ter a mesma opinião.',
+	'Achou errado, otário!',
+	'Ambiente de música é ambiente de droga!',
+	'Aqui não é pôr-do-sol pra idiota ficar batendo palma.',
+	'Cinema é explosão, carro e mulheril.',
+	'Documentário não é filme de jovem. Jovem é slackline, é Bruno de Luca.',
+	'Ele é minha sopinha de abóbora.',
+	'Eu sou uma pessoa normal, fiz catequese pra pegar mulher.',
+	'Eu vejo o filme pra não ter que ler o livro.',
+	'Eu vou pro cinema pra me divertir. Se fosse pra ficar deprimido, eu ia trabalhar ou ficar com a minha família.',
+	'Filme do Harry Potter sem Harry Potter, é golpe!',
+	'Golfinho é mau-caráter!',
+	'Hospital é um perigo, às vezes você atropela uma pessoa e ela tá bem, cê leva pro hospital, ela morre.',
+	'Isso aí já é problema mental teu.',
+	'Jesus é da Disney, rapá.',
+	'Mas dá pra dirigir cego sim, rapá. o DETRAN que é rigoroso.',
+	'Muro sem caco de vidro em cima, bandido não respeita!',
+	'Ninguém transa, Julinho. As pessoas falam que transam, mas não transam. Dá muito trabalho.',
+	'No cruzamento, a preferência é de quem tem coragem.',
+	'Ouve o que você ta falando!',
+	'Preconceito é coisa de cigano!',
+	'Problema do continente se separar é você ficar na mesma parte da sua família.',
+	'Quando eu pego táxi, eu sento na frente e o motorista atrás. Eu vou conduzindo o veículo!',
+	'Quando uma pessoa diz pra você acreditar em você e você acredita, você não está acreditando em você. Você está acreditando na pessoa que acredita em você.',
+	'Quando você chega com um pedaço de pau numa briga, a outra pessoa quer logo conversar. É a arma do diálogo!',
+	'Só você trocando de corpo com seu cônjuge pra você ver que ele é um merda.',
+	'Tá certa a indignação!',
+]
