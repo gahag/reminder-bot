@@ -1,0 +1,37 @@
+* Reminder-bot
+  A Telegram bot to keep track of scheduled tasks, and remind you of them when the time
+  comes.
+
+  The bot should work in groups and private messages. In groups, messages targeting the
+  bot must start with a mention.
+** Building
+   To build the project, =cargo build --release= should be enough.
+** Configuration
+   The bot, commands and messages are configured through the [[./config.toml][config.toml]] file.
+   - The bot configuration includes the database file path, the token key, the bot
+     username, and the password interaction.
+   - The commands configuration includes command strings.
+   - The messages configuration includes the text messages the bot will use in
+     interactions. The default messages included in this repository are in portuguese,
+     being inspired by [[https://pt.wikipedia.org/wiki/Choque_de_Cultura][Choque de Cultura]].
+** Running
+   The =config.toml= file should be placed on the directory of execution. The database file
+   must be created using =diesel cli=, in particular:
+   #+begin_src bash
+     disel migration run
+   #+end_src
+** Interactions
+   First, one should send a message to the bot containing the exact text of the configured
+   password. The bot will remember authenticated chats. Then, the following commands will
+   be recognized:
+   - =<list_command>=: list all scheduled reminders.
+   - =<remove_command> <id>=: remove the reminder =<id>=.
+   - =<date> <time> <recur> <message>=: setup a reminder with =<message>= for the given
+     datetime, possibly recurring.
+     + =<date>= should be in ISO format: =yyyy-mm-dd=.
+     + =<time>= is optional, and defaults to =00:00=.
+     + =<recur>= is optional, and should be in the format =\+[0-9]+[hdwmy]=, e.g.: =+1y=.
+     + =<message>= can contain free text, including emojis.
+** Licence
+   Reminder-bot is licenced under the [[http://opensource.org/licenses/MIT][MIT Licence]].
+
