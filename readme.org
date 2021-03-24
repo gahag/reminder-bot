@@ -6,6 +6,10 @@
   bot must start with a mention.
 ** Building
    To build the project, =cargo build --release= should be enough.
+*** Cross compiling
+    This project aims to be compatible with FreeBSD. One can compile to such target using
+    [[https://github.com/rust-embedded/cross][cross]]:
+    : cross build --release --target=x86_64-unknown-freebsd
 ** Configuration
    The bot, commands and messages are configured through the [[./config.toml][config.toml]] file.
    - The bot configuration includes the database file path, the token key, the bot
