@@ -11,8 +11,9 @@ lto = true
 thiserror = "1.0"
 anyhow = "1.0"
 
-simple_logger = "1"
+# simple_logger = "1"
 log = "0.4"
+filter_logger = { path = "./filter_logger" }
 
 chrono = "0.4"
 fastrand = "1.4"

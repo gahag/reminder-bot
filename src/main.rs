@@ -4,12 +4,11 @@ mod bot;
 mod config;
 mod controller;
 mod db;
+mod logging;
 
 use std::{fs::File, io::Read};
 
 use anyhow::Context;
-
-use simple_logger::SimpleLogger;
 
 use tokio::signal::unix::SignalKind;
 
@@ -25,10 +24,8 @@ const CONFIG_FILE: &'static str = "./config.toml";
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
-	SimpleLogger
-		::new()
-		.with_level(log::LevelFilter::Info)
-		.init()?;
+	const LOG_BATCH_SIZE: usize = 1000;
+	logging::setup(LOG_BATCH_SIZE)?;
 
 	let config = load_config()?;
 
