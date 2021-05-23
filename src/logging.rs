@@ -5,7 +5,7 @@ use std::{
 
 use log::{Level, Record};
 
-use filter_logger::{Filter, FilterLogger};
+use filter_logger::{Filter, Logger};
 
 
 
@@ -44,13 +44,13 @@ impl Default for Metadata {
 
 
 #[derive(Debug)]
-struct PreviousRecord {
+struct SavedRecord {
 	metadata: Metadata,
 	message: String,
 }
 
 
-impl PreviousRecord {
+impl SavedRecord {
 	/// Check if the new record matches. If it doesn't, then update self to reflect the new
 	/// record, and place the old message in the buffer.
 	fn match_update(&mut self, other: &Record, buffer: &mut String) -> Option<Metadata> {
@@ -95,6 +95,7 @@ impl PreviousRecord {
 	}
 
 
+	/// Update the record to match the new one.
 	fn update(&mut self, record: &Record, buffer: &mut String) {
 		match record.args().as_str() {
 			// msg is static, we can just copy.
@@ -124,7 +125,7 @@ impl PreviousRecord {
 }
 
 
-impl Default for PreviousRecord {
+impl Default for SavedRecord {
 	fn default() -> Self {
 		Self {
 			metadata: Metadata::default(),
@@ -139,7 +140,7 @@ enum VisitResult {
 	Enable,
 	Disable,
 	Previous {
-		record: PreviousRecord,
+		record: SavedRecord,
 		repetitions: usize,
 	}
 }
@@ -147,7 +148,7 @@ enum VisitResult {
 
 #[derive(Debug, Default)]
 struct RecordData {
-	previous_record: PreviousRecord,
+	previous_record: SavedRecord,
 	buffer: String,
 	repetition_count: usize,
 }
@@ -158,14 +159,14 @@ impl RecordData {
 		match self.previous_record.match_update(record, &mut self.buffer) {
 			None if self.repetition_count >= batch_size => {
 				let result = VisitResult::Previous {
-					record: PreviousRecord {
+					record: SavedRecord {
 						metadata: self.previous_record.metadata,
 						message: std::mem::take(&mut self.previous_record.message),
 					},
 					repetitions: self.repetition_count,
 				};
 
-				self.previous_record = PreviousRecord::default();
+				self.previous_record = SavedRecord::default();
 				self.previous_record.update(record, &mut self.buffer);
 				self.repetition_count = 0;
 
@@ -180,7 +181,7 @@ impl RecordData {
 					self.repetition_count = 0;
 
 					VisitResult::Previous {
-						record: PreviousRecord {
+						record: SavedRecord {
 							metadata: old_metadata,
 							message: std::mem::take(&mut self.buffer),
 						},
@@ -205,8 +206,7 @@ struct SpamFilter {
 
 
 impl SpamFilter {
-	fn new(batch_size: usize) -> Self
-	{
+	fn new(batch_size: usize) -> Self {
 		Self {
 			record_data: Mutex::new(RecordData::default()),
 			batch_size,
@@ -227,14 +227,24 @@ impl Filter for SpamFilter {
 		match result {
 			VisitResult::Enable => true,
 			VisitResult::Disable => false,
-			VisitResult::Previous { record: PreviousRecord { metadata, message }, repetitions } => {
-				eprintln!(
-					"[{}] {:<5} | {} ({}x)",
-					metadata.module_path.unwrap_or("?"),
-					metadata.level,
-					message,
-					repetitions,
+			VisitResult::Previous { record: SavedRecord { metadata, message }, repetitions } => {
+				// Here, we can't use log::log because it would recurse back into this method,
+				// overwriting the last saved log.
+				Logger::emit(
+					&log::Record
+						::builder()
+						.level(metadata.level)
+						.target(
+							metadata.module_path.unwrap_or("?")
+						)
+						.file_static(metadata.file)
+						.module_path_static(metadata.module_path)
+						.args(
+							format_args!("{} ({}x)", message.as_str(), repetitions)
+						)
+						.build()
 				);
+
 				true
 			}
 		}
@@ -243,7 +253,7 @@ impl Filter for SpamFilter {
 
 
 pub fn setup(batch_size: usize) -> anyhow::Result<()> {
-	let mut logger = FilterLogger::new(log::Level::Info);
+	let mut logger = Logger::new(log::Level::Info);
 
 	logger.add_filter(SpamFilter::new(batch_size));
 
