@@ -93,6 +93,34 @@ impl PreviousRecord {
 			}
 		}
 	}
+
+
+	fn update(&mut self, record: &Record, buffer: &mut String) {
+		match record.args().as_str() {
+			// msg is static, we can just copy.
+			Some(msg) => {
+				// Place old message in the buffer.
+				std::mem::swap(&mut self.message, buffer);
+				self.message.clear();
+				self.message.push_str(msg);
+
+				self.metadata.update(record);
+			},
+
+			// We must use allocated space for the message. This allows us to swap instead of
+			// copying if they match.
+			None => {
+				buffer.clear();
+				buffer
+					.write_fmt(*record.args())
+					.expect("write should never fail for String");
+
+				std::mem::swap(&mut self.message, buffer);
+
+				self.metadata.update(record);
+			}
+		}
+	}
 }
 
 
@@ -106,6 +134,17 @@ impl Default for PreviousRecord {
 }
 
 
+#[derive(Debug)]
+enum VisitResult {
+	Enable,
+	Disable,
+	Previous {
+		record: PreviousRecord,
+		repetitions: usize,
+	}
+}
+
+
 #[derive(Debug, Default)]
 struct RecordData {
 	previous_record: PreviousRecord,
@@ -115,45 +154,44 @@ struct RecordData {
 
 
 impl RecordData {
-	fn visit(
-		&mut self,
-		record: &Record,
-		batch_size: usize
-	) -> Option<(Metadata, String, usize)> {
+	fn visit(&mut self, record: &Record, batch_size: usize) -> VisitResult {
 		match self.previous_record.match_update(record, &mut self.buffer) {
 			None if self.repetition_count >= batch_size => {
-				let result = (
-					self.previous_record.metadata,
-					std::mem::take(&mut self.previous_record.message),
-					self.repetition_count,
-				);
+				let result = VisitResult::Previous {
+					record: PreviousRecord {
+						metadata: self.previous_record.metadata,
+						message: std::mem::take(&mut self.previous_record.message),
+					},
+					repetitions: self.repetition_count,
+				};
 
 				self.previous_record = PreviousRecord::default();
+				self.previous_record.update(record, &mut self.buffer);
 				self.repetition_count = 0;
 
-				Some(result)
+				result
 			}
 
-			Some(old_metadata) if self.repetition_count > 0 => {
-				let result = (
-					old_metadata,
-					std::mem::take(&mut self.buffer),
-					self.repetition_count
-				);
+			Some(old_metadata) => {
+				if self.repetition_count == 0 {
+					VisitResult::Enable
+				} else {
+					let repetitions = self.repetition_count;
+					self.repetition_count = 0;
 
-				self.repetition_count = 0;
-
-				Some(result)
-			}
-
-			Some(_) => {
-				self.repetition_count = 0;
-				None
+					VisitResult::Previous {
+						record: PreviousRecord {
+							metadata: old_metadata,
+							message: std::mem::take(&mut self.buffer),
+						},
+						repetitions,
+					}
+				}
 			}
 
 			None => {
 				self.repetition_count += 1;
-				None
+				VisitResult::Disable
 			}
 		}
 	}
@@ -181,16 +219,24 @@ impl Filter for SpamFilter {
 	fn is_enabled(&self, record: &log::Record) -> bool {
 		let result = {
 			self.record_data
-			.lock()
-			.expect("poisoned mutex")
-			.visit(record, self.batch_size)
+				.lock()
+				.expect("poisoned mutex")
+				.visit(record, self.batch_size)
 		};
 
-		if let Some((metadata, msg, repetitions)) = result {
-			log::log!(metadata.level, "[{}x] {}", repetitions, msg);
-			false
-		} else {
-			true
+		match result {
+			VisitResult::Enable => true,
+			VisitResult::Disable => false,
+			VisitResult::Previous { record: PreviousRecord { metadata, message }, repetitions } => {
+				eprintln!(
+					"[{}] {:<5} | {} ({}x)",
+					metadata.module_path.unwrap_or("?"),
+					metadata.level,
+					message,
+					repetitions,
+				);
+				true
+			}
 		}
 	}
 }
