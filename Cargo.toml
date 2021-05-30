@@ -11,9 +11,7 @@ lto = true
 thiserror = "1.0"
 anyhow = "1.0"
 
-# simple_logger = "1"
-log = "0.4"
-filter_logger = { path = "./filter_logger" }
+log = { version = "0.4", features = ["std"] }
 
 chrono = "0.4"
 fastrand = "1.4"
@@ -31,7 +29,7 @@ futures = "0.3"
 # We need to use rustls because cross fails to link openssl properly.
 # telegram-bot = { version = "0.9", default-features = false, features = ["rustls"] }
 [dependencies.telegram-bot]
-git = "https://github.com/telegram-rs/telegram-bot"
+git = "https://github.com/vtavernier/telegram-bot"
 branch = "master"
 default-features = false
 features = ["rustls"]

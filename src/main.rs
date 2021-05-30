@@ -25,7 +25,7 @@ const CONFIG_FILE: &'static str = "./config.toml";
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
 	// One "sending notifications" log batch every 3 hours.
-	const LOG_BATCH_SIZE: usize = 900;
+	const LOG_BATCH_SIZE: usize = 36;
 	logging::setup(LOG_BATCH_SIZE)?;
 
 	let config = load_config()?;

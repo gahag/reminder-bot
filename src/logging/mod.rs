@@ -1,3 +1,5 @@
+mod filter_logger;
+
 use std::{
 	fmt::Write,
 	sync::Mutex,
