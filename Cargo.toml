@@ -31,5 +31,5 @@ futures = "0.3"
 [dependencies.telegram-bot]
 git = "https://github.com/vtavernier/telegram-bot"
 branch = "master"
-default-features = false
-features = ["rustls"]
+# default-features = false
+# features = ["rustls"]
